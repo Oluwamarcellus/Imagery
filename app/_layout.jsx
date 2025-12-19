@@ -1,5 +1,5 @@
-import Colors from "@constants/Colors";
 import { Stack } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const MainLayout = () => {
   return (
@@ -14,4 +14,12 @@ const MainLayout = () => {
   );
 };
 
-export default MainLayout;
+const RootLayout = () => {
+  return (
+    <GestureHandlerRootView>
+      <MainLayout />
+    </GestureHandlerRootView>
+  );
+};
+
+export default RootLayout;

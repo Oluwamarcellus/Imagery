@@ -17,7 +17,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { widthPercentageToDP } from "react-native-responsive-screen";
 
-const HomeHeader = ({ padding }) => {
+const HomeHeader = ({ padding, isSheetOpen, bottomSheetRef }) => {
   const [headerInputFocused, setHeaderInputFocused] = useState(false);
   const [headerInput, setHeaderInput] = useState("");
   const [filterCategory, setFilterCategory] = useState([
@@ -34,6 +34,12 @@ const HomeHeader = ({ padding }) => {
   const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
   const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
   const AnimatedView = Animated.createAnimatedComponent(View);
+
+  const bottomSheetToggler = () => {
+    isSheetOpen.current
+      ? bottomSheetRef.current?.close()
+      : bottomSheetRef.current?.expand();
+  };
 
   return (
     <View style={{ paddingHorizontal: padding / 5 }}>
@@ -65,7 +71,7 @@ const HomeHeader = ({ padding }) => {
           value={headerInput}
           onChangeText={setHeaderInput}
         />
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => bottomSheetToggler()}>
           <SlidersHorizontal size={22} color={Colors.grey} />
         </TouchableOpacity>
       </View>

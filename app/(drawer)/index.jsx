@@ -1,11 +1,13 @@
 import HomeHeader from "@components/HomeHeader";
+import SheetView from "@components/SheetView";
 import Colors from "@constants/Colors";
 import Photos from "@constants/Photos";
+import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useDrawerStatus } from "@react-navigation/drawer";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import Drawer from "expo-router/drawer";
-import { useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, { FadeIn, ZoomOut } from "react-native-reanimated";
 import {
@@ -14,14 +16,27 @@ import {
 } from "react-native-responsive-screen";
 
 const index = () => {
+  // Hooks and States
   const [photos, setPhotos] = useState(Photos);
   const [numOfColumns, setNumOfColumns] = useState(3);
   const [padding, setPadding] = useState(10);
-
+  const bottomSheetRef = useRef(null);
+  const snapPoints = useMemo(() => ["60%"], []);
+  const isSheetOpen = useRef(false);
   const isDrawerOpen = useDrawerStatus() === "open";
+
+  // Constants
   const apiKey = process.env.EXPO_PUBLIC_PIXABAY_API;
 
-  // check if image is portrait within thr FlashList renderItem
+  // Functions
+  const handleSheetChanges = useCallback((index) => {
+    // console.log(index);
+    index >= 0 ? (isSheetOpen.current = true) : (isSheetOpen.current = false);
+
+    // Force close the sheet
+    index === 0 && bottomSheetRef.current?.close();
+  }, []);
+
   const isPortrait = (item) => {
     return item.webformatHeight > item.webformatWidth;
   };
@@ -39,6 +54,7 @@ const index = () => {
 
   return (
     <View style={styles.container}>
+      {/** Programatically set headerLeft  */}
       <Drawer.Screen
         options={{
           headerLeft: () => {
@@ -55,6 +71,22 @@ const index = () => {
         }}
       />
 
+      {/* * Activates when filter panel opens
+      {isSheetOpen && (
+        <BlurView
+          tint="light"
+          intensity={10}
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 10,
+          }}
+        />
+      )} */}
+
       {/* HEADER */}
 
       {/* PHOTOS */}
@@ -67,11 +99,19 @@ const index = () => {
         contentContainerStyle={{
           paddingHorizontal: padding / 2,
         }}
-        ListHeaderComponent={() => <HomeHeader padding={padding} />}
+        ListHeaderComponent={() => (
+          <HomeHeader
+            padding={padding}
+            isSheetOpen={isSheetOpen}
+            bottomSheetRef={bottomSheetRef}
+          />
+        )}
         renderItem={({ item }) => (
           <View
             style={{
               borderRadius: 5,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: Colors.input,
               overflow: "hidden",
               flex: 1,
               margin: padding / 5,
@@ -86,13 +126,25 @@ const index = () => {
               style={{
                 width: "100%",
                 height: "100%",
-                resizeMode: "cover",
+                contentFit: "cover",
               }}
               transition={400}
             />
           </View>
         )}
       />
+      <BottomSheet
+        ref={bottomSheetRef}
+        index={-1}
+        snapPoints={snapPoints}
+        onChange={handleSheetChanges}
+        enablePanDownToClose={true}
+        enableOverDrag={false}
+      >
+        <BottomSheetView style={{ padding: 20 }}>
+          <SheetView />
+        </BottomSheetView>
+      </BottomSheet>
     </View>
   );
 };
