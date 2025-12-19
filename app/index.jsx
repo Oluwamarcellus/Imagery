@@ -8,12 +8,17 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import Animated, { FadeInDown, SlideInDown } from "react-native-reanimated";
 import Colors from "@constants/Colors";
-
-const AnimatedLinearGradient = Animated.createAnimatedComponent(LinearGradient);
-const AnimatedTouchableOpacity =
-  Animated.createAnimatedComponent(TouchableOpacity);
+import { StatusBar } from "expo-status-bar";
+import { useRouter } from "expo-router";
 
 const index = () => {
+  const AnimatedLinearGradient =
+    Animated.createAnimatedComponent(LinearGradient);
+  const AnimatedTouchableOpacity =
+    Animated.createAnimatedComponent(TouchableOpacity);
+
+  const router = useRouter();
+
   return (
     <View>
       <Image
@@ -23,6 +28,7 @@ const index = () => {
           height: "100%",
         }}
       />
+      <StatusBar hidden />
 
       <AnimatedLinearGradient
         entering={FadeInDown.duration(500)}
@@ -57,6 +63,9 @@ const index = () => {
         </Animated.Text>
 
         <AnimatedTouchableOpacity
+          onPress={() => {
+            router.replace("/(drawer)");
+          }}
           entering={FadeInDown.delay(400)
             .springify()
             .damping(12)
@@ -84,15 +93,15 @@ const styles = StyleSheet.create({
     paddingBottom: hp("5%"),
     justifyContent: "flex-end",
     alignItems: "center",
-    gap: 8,
   },
   title: {
     fontSize: wp("15%"),
     fontWeight: "500",
     color: Colors.dark,
+    marginBottom: 2,
   },
   subTitle: {
-    fontSize: wp("4.5%"),
+    fontSize: wp("4%"),
     fontWeight: "500",
     color: Colors.dark,
   },
