@@ -3,6 +3,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { SlidersHorizontal } from "lucide-react-native";
 import { useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,33 +13,56 @@ import {
 } from "react-native";
 import Animated, {
   FadeIn,
+  FadeInLeft,
   FadeInRight,
+  FadeOut,
   FadeOutLeft,
 } from "react-native-reanimated";
 import { widthPercentageToDP } from "react-native-responsive-screen";
 
-const HomeHeader = ({ padding, isSheetOpen, bottomSheetRef }) => {
+const HomeHeader = ({
+  padding,
+  isSheetOpen,
+  bottomSheetRef,
+  setQueries,
+  categories,
+  activeCategory,
+  filterCount,
+}) => {
   const [headerInputFocused, setHeaderInputFocused] = useState(false);
   const [headerInput, setHeaderInput] = useState("");
-  const [filterCategory, setFilterCategory] = useState([
-    "all",
-    "backgrounds",
-    "nature",
-    "people",
-    "architecture",
-    "food",
-    "business",
-  ]);
-  const [filterCategoryActive, setFilterCategoryActive] = useState("all");
-
   const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
   const AnimatedTextInput = Animated.createAnimatedComponent(TextInput);
   const AnimatedView = Animated.createAnimatedComponent(View);
+  const AnimatedTouchableOpacity =
+    Animated.createAnimatedComponent(TouchableOpacity);
 
   const bottomSheetToggler = () => {
     isSheetOpen.current
       ? bottomSheetRef.current?.close()
       : bottomSheetRef.current?.expand();
+  };
+
+  const handleOnInputExit = () => {
+    setHeaderInputFocused(false);
+  };
+
+  const headerInputHandler = (text) => {
+    setHeaderInput(text);
+    setQueries((prev) => ({ ...prev, q: text }));
+  };
+
+  const manageCategorySwitch = (category) => {
+    if (category !== "all")
+      setQueries((prev) => ({ ...prev, category: category }));
+    else {
+      const fn = (queries) => {
+        const { category: _, ...rest } = queries;
+        return rest;
+      };
+
+      setQueries((prev) => fn(prev));
+    }
   };
 
   return (
@@ -47,7 +71,7 @@ const HomeHeader = ({ padding, isSheetOpen, bottomSheetRef }) => {
       <View style={styles.headerContainer}>
         {!headerInputFocused && headerInput.length === 0 && (
           <AnimatedIonicons
-            entering={FadeIn.duration(300)}
+            entering={FadeInLeft.duration(300)}
             exiting={FadeOutLeft.duration(200)}
             name="search"
             size={22}
@@ -67,13 +91,19 @@ const HomeHeader = ({ padding, isSheetOpen, bottomSheetRef }) => {
             },
           ]}
           onFocus={() => setHeaderInputFocused(true)}
-          onBlur={() => setHeaderInputFocused(false)}
+          onBlur={() => handleOnInputExit()}
           value={headerInput}
-          onChangeText={setHeaderInput}
+          onChangeText={headerInputHandler}
         />
-        <TouchableOpacity onPress={() => bottomSheetToggler()}>
+        <AnimatedTouchableOpacity
+          entering={FadeInRight.duration(300)}
+          onPress={() => bottomSheetToggler()}
+        >
+          {filterCount > 0 && (
+            <Text style={styles.filterCount}>{filterCount}</Text>
+          )}
           <SlidersHorizontal size={22} color={Colors.grey} />
-        </TouchableOpacity>
+        </AnimatedTouchableOpacity>
       </View>
 
       {/* CATEGORY */}
@@ -85,7 +115,7 @@ const HomeHeader = ({ padding, isSheetOpen, bottomSheetRef }) => {
         }}
         showsHorizontalScrollIndicator={false}
       >
-        {filterCategory.map((category, index) => (
+        {categories.map((category, index) => (
           <AnimatedView
             entering={FadeInRight.duration(200).delay(100 * index)}
             key={category}
@@ -93,20 +123,18 @@ const HomeHeader = ({ padding, isSheetOpen, bottomSheetRef }) => {
               styles.categoryCard,
               {
                 backgroundColor:
-                  filterCategoryActive === category
-                    ? Colors.dark
-                    : Colors.input,
+                  activeCategory === category ? Colors.dark : Colors.input,
               },
             ]}
           >
             <TouchableOpacity
               style={{ flex: 1 }}
-              onPress={() => setFilterCategoryActive(category)}
+              onPress={() => manageCategorySwitch(category)}
             >
               <Text
                 style={{
                   color:
-                    filterCategoryActive === category
+                    activeCategory === category
                       ? Colors.background
                       : Colors.grey,
                   fontSize: widthPercentageToDP("4%"),
@@ -148,5 +176,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 10,
+  },
+  filterCount: {
+    position: "absolute",
+    right: 0,
+    top: -5,
+    backgroundColor: Colors.tint,
+    color: Colors.input,
+    width: 15,
+    height: 15,
+    borderRadius: 50,
+    textAlign: "center",
+    zIndex: 2,
   },
 });

@@ -1,15 +1,15 @@
+import CustomBottomSheetBackdrop from "@components/CustomBottomSheetBackdrop";
 import HomeHeader from "@components/HomeHeader";
 import SheetView from "@components/SheetView";
 import Colors from "@constants/Colors";
-import Photos from "@constants/Photos";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useDrawerStatus } from "@react-navigation/drawer";
 import { FlashList } from "@shopify/flash-list";
 import { Image } from "expo-image";
 import Drawer from "expo-router/drawer";
-import { useCallback, useMemo, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
-import Animated, { FadeIn, ZoomOut } from "react-native-reanimated";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
+import Animated, { FadeIn, FadeOut, ZoomOut } from "react-native-reanimated";
 import {
   heightPercentageToDP,
   widthPercentageToDP,
@@ -17,18 +17,89 @@ import {
 
 const index = () => {
   // Hooks and States
-  const [photos, setPhotos] = useState(Photos);
+  const [photos, setPhotos] = useState([]);
+  const [queries, setQueries] = useState({});
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [isFirstFetch, setIsFirstFetch] = useState(true);
   const [numOfColumns, setNumOfColumns] = useState(3);
-  const [padding, setPadding] = useState(10);
+  const [numPhotosPerPage, setNumPhotosPerPage] = useState(50);
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["60%"], []);
   const isSheetOpen = useRef(false);
+  const reloadTriggered = useRef(false);
+  const page = useRef(1);
+
   const isDrawerOpen = useDrawerStatus() === "open";
 
   // Constants
-  const apiKey = process.env.EXPO_PUBLIC_PIXABAY_API;
+  const padding = 10;
+  const categories = [
+    "all",
+    "backgrounds",
+    "fashion",
+    "nature",
+    "science",
+    "education",
+    "feelings",
+    "health",
+    "people",
+    "religion",
+    "places",
+    "animals",
+    "industry",
+    "computer",
+    "food",
+    "sports",
+    "transportation",
+    "travel",
+    "buildings",
+    "business",
+    "music",
+  ];
+
+  const BLURHASH_LOADING = "LEHV6nWB2yk8pyo0adR*.7kCMdnj";
+
+  // USE-EFFECTS
+  useEffect(() => {
+    // Fethc Photos with debouncing
+    let timer = setTimeout(() => {
+      fetchPhotos({ rawFetch: true });
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [queries]);
 
   // Functions
+  const fetchPhotos = async (
+    { append, rawFetch } = { append: false, rawFetch: false }
+  ) => {
+    try {
+      setLoading(true);
+      rawFetch ? (page.current = 1) : page.current++;
+      const url = queryResolve();
+      console.log(queryResolve());
+      const response = await fetch(url);
+      const data = await response.json();
+      isFirstFetch && setIsFirstFetch(false);
+      append
+        ? setPhotos((prev) => [...prev, ...data.hits])
+        : setPhotos(data.hits);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const queryResolve = () => {
+    const api_key = process.env.EXPO_PUBLIC_PIXABAY_API;
+    let api = `https://pixabay.com/api/?key=${api_key}&page=${page.current}&per_page=${numPhotosPerPage}`;
+    Object.entries(queries).forEach(([key, value]) => {
+      api = api + `&${key}=${key !== "q" ? value : encodeURIComponent(value)}`;
+    });
+    return api;
+  };
+
   const handleSheetChanges = useCallback((index) => {
     // console.log(index);
     index >= 0 ? (isSheetOpen.current = true) : (isSheetOpen.current = false);
@@ -41,16 +112,38 @@ const index = () => {
     return item.webformatHeight > item.webformatWidth;
   };
 
-  const isFirstColumn = (index) => {
-    return index % 2 === 0;
+  const getTotalFilters = () => {
+    let total = 0;
+    Object.keys(queries).forEach((key) => {
+      if (key !== "category" && key !== "q") total++;
+    });
+    return total;
   };
 
-  const testApi = async () => {
-    const api = `https://pixabay.com/api/?key=${apiKey}`;
-    const response = await fetch(api);
-    const data = await response.json();
-    console.log(data);
+  const handlePagination = async (event) => {
+    const contentHeight = event.nativeEvent.contentSize.height;
+    const screenHeight = event.nativeEvent.layoutMeasurement.height;
+    const scrollY = Math.floor(event.nativeEvent.contentOffset.y);
+
+    const totalScrollableHeight = Math.floor(contentHeight - screenHeight);
+
+    const reloadThreshold = 500;
+
+    if (
+      scrollY + reloadThreshold >= totalScrollableHeight &&
+      !reloadTriggered.current
+    ) {
+      reloadTriggered.current = true;
+      setIsLoadingMore(true);
+
+      fetchPhotos({ append: true }).finally(() => {
+        setTimeout(() => (reloadTriggered.current = false), 500);
+        setIsLoadingMore(false);
+      });
+    }
   };
+
+  const AnimatedView = Animated.createAnimatedComponent(View);
 
   return (
     <View style={styles.container}>
@@ -71,46 +164,87 @@ const index = () => {
         }}
       />
 
-      {/* * Activates when filter panel opens
-      {isSheetOpen && (
-        <BlurView
-          tint="light"
-          intensity={10}
+      {/* HEADER */}
+      {loading && !isFirstFetch && !isLoadingMore && (
+        <AnimatedView
           style={{
             position: "absolute",
-            top: 0,
-            left: 0,
             right: 0,
-            bottom: 0,
+            left: 0,
             zIndex: 10,
+            top: heightPercentageToDP("10%"),
+            justifyContent: "center",
+            flexDirection: "row",
           }}
-        />
-      )} */}
+          entering={FadeIn.duration(300)}
+          exiting={FadeOut.duration(1000)}
+        >
+          <ActivityIndicator
+            size="small"
+            style={{
+              borderRadius: 100,
+              backgroundColor: Colors.tint,
+              alignSelf: "center",
+              padding: 6,
+            }}
+            color={"fff"}
+          />
+        </AnimatedView>
+      )}
 
-      {/* HEADER */}
+      {/* PHOTOS SECTION */}
 
-      {/* PHOTOS */}
       <FlashList
         data={photos}
         numColumns={numOfColumns}
         keyExtractor={(item) => item.id}
         masonry={true}
+        onScroll={handlePagination}
+        scrollEventThrottle={16}
         keyboardDismissMode="on-drag"
         contentContainerStyle={{
           paddingHorizontal: padding / 2,
+          paddingBottom: 30,
         }}
-        ListHeaderComponent={() => (
+        ListEmptyComponent={
+          isFirstFetch ? (
+            <View
+              style={{
+                flex: 1,
+              }}
+            >
+              <ActivityIndicator
+                size="large"
+                style={{ marginTop: heightPercentageToDP("25%") }}
+              />
+            </View>
+          ) : null
+        }
+        ListHeaderComponent={
           <HomeHeader
             padding={padding}
             isSheetOpen={isSheetOpen}
             bottomSheetRef={bottomSheetRef}
+            setQueries={setQueries}
+            categories={categories}
+            activeCategory={queries["category"] || "all"}
+            filterCount={getTotalFilters()}
           />
-        )}
+        }
+        ListFooterComponent={
+          isLoadingMore &&
+          !isFirstFetch && (
+            <ActivityIndicator
+              size="large"
+              style={{ marginTop: 10, color: Colors.dark }}
+            />
+          )
+        }
         renderItem={({ item }) => (
           <View
             style={{
               borderRadius: 5,
-              borderWidth: StyleSheet.hairlineWidth,
+              borderWidth: 1,
               borderColor: Colors.input,
               overflow: "hidden",
               flex: 1,
@@ -123,16 +257,19 @@ const index = () => {
           >
             <Image
               source={{ uri: item.webformatURL }}
+              transition={300}
+              placeholder={{ blurhash: BLURHASH_LOADING }}
               style={{
                 width: "100%",
                 height: "100%",
                 contentFit: "cover",
               }}
-              transition={400}
             />
           </View>
         )}
       />
+
+      {/* FILTER BOTTOM SHEET MODAL*/}
       <BottomSheet
         ref={bottomSheetRef}
         index={-1}
@@ -140,9 +277,10 @@ const index = () => {
         onChange={handleSheetChanges}
         enablePanDownToClose={true}
         enableOverDrag={false}
+        backdropComponent={(props) => <CustomBottomSheetBackdrop {...props} />}
       >
         <BottomSheetView style={{ padding: 20 }}>
-          <SheetView />
+          <SheetView setQueries={setQueries} bottomSheetRef={bottomSheetRef} />
         </BottomSheetView>
       </BottomSheet>
     </View>

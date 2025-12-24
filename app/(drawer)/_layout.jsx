@@ -20,7 +20,6 @@ const DrawerLayout = () => {
         drawerStyle: {
           width: "65%",
           borderRadius: 10,
-          backgroundColor: Colors.background,
         },
         drawerLabel: ({ focused }) => (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
@@ -56,7 +55,7 @@ const DrawerLayout = () => {
           <View
             style={{
               flex: 1,
-              backgroundColor: Colors.background,
+              backgroundColor: "transparent",
             }}
           />
         ),

@@ -1,15 +1,15 @@
-import { Image } from "expo-image";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import WelcomeImg from "@assets/images/welcome.webp";
-import {
-  widthPercentageToDP as wp,
-  heightPercentageToDP as hp,
-} from "react-native-responsive-screen";
-import { LinearGradient } from "expo-linear-gradient";
-import Animated, { FadeInDown, SlideInDown } from "react-native-reanimated";
 import Colors from "@constants/Colors";
-import { StatusBar } from "expo-status-bar";
+import { Image } from "expo-image";
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Animated, { FadeInDown } from "react-native-reanimated";
+import {
+  heightPercentageToDP as hp,
+  widthPercentageToDP as wp,
+} from "react-native-responsive-screen";
 
 const index = () => {
   const AnimatedLinearGradient =
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     height: hp("60%"),
-    paddingHorizontal: wp("15%"),
+    paddingHorizontal: wp("20%"),
     paddingBottom: hp("5%"),
     justifyContent: "flex-end",
     alignItems: "center",
@@ -111,12 +111,12 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    padding: 20,
+    padding: 15,
     marginTop: 30,
   },
   buttonTitle: {
     color: "white",
-    fontSize: wp("5%"),
+    fontSize: wp("4.5%"),
     fontWeight: "500",
   },
 });

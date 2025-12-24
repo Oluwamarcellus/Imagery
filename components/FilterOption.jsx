@@ -1,36 +1,111 @@
 import Colors from "@constants/Colors";
+import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { FadeInRight } from "react-native-reanimated";
 import { widthPercentageToDP } from "react-native-responsive-screen";
 
-const FilterOption = ({ name, options, isColorType }) => {
+const FilterOption = ({
+  name,
+  options,
+  selected,
+  manageFilter,
+  isColorType,
+}) => {
   const AnimatedView = Animated.createAnimatedComponent(View);
   return (
     <AnimatedView
       entering={FadeInRight.duration(200).delay(100)}
-      style={{ marginTop: 15 }}
+      style={{ marginTop: 12 }}
     >
-      <Text style={styles.categoryTitle}>{name}</Text>
+      <Text style={styles.categoryTitle}>
+        {name !== "image_type"
+          ? `${name[0].toUpperCase()}${name.slice(1)}`
+          : "Type"}
+      </Text>
       <View
         style={[
-          { flexDirection: "row", gap: 5, flexWrap: "wrap" },
-          isColorType && { gap: 10 },
+          {
+            flexDirection: "row",
+            gap: 8,
+            flexWrap: "wrap",
+          },
         ]}
       >
         {options.map((option) => (
           <TouchableOpacity
+            activeOpacity={0.9}
             key={option}
             style={[
               styles.categoryCard,
               isColorType && {
-                backgroundColor: option.toLowerCase(),
-                paddingHorizontal: 20,
-                paddingVertical: 15,
+                height: 35,
+                width: 45,
+                borderWidth: 2.5,
+                borderColor: Colors.input,
+                justifyContent: "center",
+                alignItems: "center",
+                overflow: "hidden",
               },
+              !isColorType && {
+                padding: 6,
+              },
+              selected === option.toLowerCase() &&
+                !isColorType && {
+                  backgroundColor: Colors.tint,
+                },
+              selected === option.toLowerCase() &&
+                isColorType && { borderColor: Colors.tint },
             ]}
-            onPress={() => {}}
+            onPress={() => manageFilter(name, option)}
           >
-            {!isColorType && <Text style={styles.optionTitle}>{option}</Text>}
+            {isColorType ? (
+              <View
+                style={[
+                  {
+                    flex: 1,
+                    height: "100%",
+                    width: "100%",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: option.toLowerCase(),
+                  },
+                  selected === option.toLowerCase() && { opacity: 0.8 },
+                ]}
+              >
+                {option.toLowerCase() === "transparent" && (
+                  <Image
+                    source={require("@assets/images/transparent.webp")}
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: 0,
+                      width: "100%",
+                      height: "100%",
+                      resizeMode: "cover",
+                    }}
+                  />
+                )}
+                <Ionicons
+                  name={`${
+                    selected === option.toLowerCase() ? "add-outline" : ""
+                  }`}
+                  size={30}
+                  color={Colors.tint}
+                />
+              </View>
+            ) : (
+              <Text
+                style={[
+                  styles.optionTitle,
+                  selected === option.toLowerCase() && {
+                    color: "#fff",
+                  },
+                ]}
+              >
+                {option}
+              </Text>
+            )}
           </TouchableOpacity>
         ))}
       </View>
@@ -42,18 +117,17 @@ export default FilterOption;
 
 const styles = StyleSheet.create({
   categoryTitle: {
-    fontSize: widthPercentageToDP("5%"),
-    fontWeight: "400",
+    fontSize: widthPercentageToDP("4%"),
+    fontWeight: "500",
     color: Colors.dark,
     marginBottom: 5,
   },
   optionTitle: {
     color: Colors.lightGrey,
-    fontSize: widthPercentageToDP("4%"),
+    fontSize: widthPercentageToDP("3.5%"),
     fontWeight: "500",
   },
   categoryCard: {
-    padding: 6,
     borderRadius: 10,
     borderWidth: 1,
     borderColor: Colors.lightGrey,
