@@ -1,11 +1,13 @@
 import CustomBottomSheetBackdrop from "@components/CustomBottomSheetBackdrop";
 import HomeHeader from "@components/HomeHeader";
+import ImageCard from "@components/ImageCard";
+import ListEmpty from "@components/ListEmpty";
 import SheetView from "@components/SheetView";
 import Colors from "@constants/Colors";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { useDrawerStatus } from "@react-navigation/drawer";
 import { FlashList } from "@shopify/flash-list";
-import { Image } from "expo-image";
+import { useRouter } from "expo-router";
 import Drawer from "expo-router/drawer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, StyleSheet, View } from "react-native";
@@ -30,6 +32,7 @@ const index = () => {
   const reloadTriggered = useRef(false);
   const page = useRef(1);
 
+  const router = useRouter();
   const isDrawerOpen = useDrawerStatus() === "open";
 
   // Constants
@@ -58,8 +61,6 @@ const index = () => {
     "music",
   ];
 
-  const BLURHASH_LOADING = "LEHV6nWB2yk8pyo0adR*.7kCMdnj";
-
   // USE-EFFECTS
   useEffect(() => {
     // Fethc Photos with debouncing
@@ -77,7 +78,7 @@ const index = () => {
       setLoading(true);
       rawFetch ? (page.current = 1) : page.current++;
       const url = queryResolve();
-      console.log(queryResolve());
+      console.log(photos);
       const response = await fetch(url);
       const data = await response.json();
       isFirstFetch && setIsFirstFetch(false);
@@ -107,10 +108,6 @@ const index = () => {
     // Force close the sheet
     index === 0 && bottomSheetRef.current?.close();
   }, []);
-
-  const isPortrait = (item) => {
-    return item.webformatHeight > item.webformatWidth;
-  };
 
   const getTotalFilters = () => {
     let total = 0;
@@ -206,20 +203,7 @@ const index = () => {
           paddingHorizontal: padding / 2,
           paddingBottom: 30,
         }}
-        ListEmptyComponent={
-          isFirstFetch ? (
-            <View
-              style={{
-                flex: 1,
-              }}
-            >
-              <ActivityIndicator
-                size="large"
-                style={{ marginTop: heightPercentageToDP("25%") }}
-              />
-            </View>
-          ) : null
-        }
+        ListEmptyComponent={<ListEmpty isFirstFetch={isFirstFetch} />}
         ListHeaderComponent={
           <HomeHeader
             padding={padding}
@@ -241,31 +225,7 @@ const index = () => {
           )
         }
         renderItem={({ item }) => (
-          <View
-            style={{
-              borderRadius: 5,
-              borderWidth: 1,
-              borderColor: Colors.input,
-              overflow: "hidden",
-              flex: 1,
-              margin: padding / 5,
-              marginBottom: padding / 5,
-              height: isPortrait(item)
-                ? heightPercentageToDP("25%")
-                : heightPercentageToDP("22%"),
-            }}
-          >
-            <Image
-              source={{ uri: item.webformatURL }}
-              transition={300}
-              placeholder={{ blurhash: BLURHASH_LOADING }}
-              style={{
-                width: "100%",
-                height: "100%",
-                contentFit: "cover",
-              }}
-            />
-          </View>
+          <ImageCard photo={item} padding={padding} router={router} />
         )}
       />
 

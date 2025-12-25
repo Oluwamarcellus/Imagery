@@ -10,6 +10,13 @@ const MainLayout = () => {
     >
       <Stack.Screen name="index" />
       <Stack.Screen name="(drawer)" />
+      <Stack.Screen
+        name="image_viewer"
+        options={{
+          presentation: "transparentModal",
+          animation: "fade",
+        }}
+      />
     </Stack>
   );
 };
