@@ -1,6 +1,6 @@
 import Colors from "@constants/Colors";
 import { BlurView } from "expo-blur";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { ActivityIndicator, StyleSheet, TouchableOpacity } from "react-native";
 import Animated, { Easing, FadeInDown } from "react-native-reanimated";
 
 const GlassyButton = (props) => {
@@ -15,7 +15,11 @@ const GlassyButton = (props) => {
       onPress={() => props.buttonFn()}
     >
       <BlurView tint="light" intensity={10} style={StyleSheet.absoluteFill} />
-      <props.icon color={Colors.input} size={20} strokeWidth={3} />
+      {props.isDownloading ? (
+        <ActivityIndicator size="small" color={Colors.input} />
+      ) : (
+        <props.icon color={Colors.input} size={20} strokeWidth={3} />
+      )}
     </AnimatedTouchableOpacity>
   );
 };

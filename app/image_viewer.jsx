@@ -1,19 +1,22 @@
+import CustomZoomableImage from "@components/CustomZoomableImage";
 import GlassyButton from "@components/GlassyButton";
 import Colors from "@constants/Colors";
-import { Zoomable } from "@likashefqet/react-native-image-zoom";
 import { BlurView } from "expo-blur";
+import { Directory, File, Paths } from "expo-file-system";
 import { Image } from "expo-image";
+import * as MediaLibrary from "expo-media-library";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Download, Forward, X } from "lucide-react-native";
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
-import Animated, { FadeIn } from "react-native-reanimated";
+import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
+import Animated from "react-native-reanimated";
 import { heightPercentageToDP } from "react-native-responsive-screen";
 
 const ImageViewer = () => {
   const router = useRouter();
   const imageUrl = useLocalSearchParams().imageUrl;
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const AnimatedImage = Animated.createAnimatedComponent(Image);
 
@@ -23,8 +26,35 @@ const ImageViewer = () => {
   };
 
   const SaveImage = async () => {
-    // const localUrl = FileSystem.documentDirectory;
-    // console.log(localUrl);
+    setIsDownloading(true);
+    let imageName = Date.now().toString() + ".jpg";
+    try {
+      // Creating a directory
+      const dir = new Directory(Paths.cache, "my-photos");
+      if (!dir.exists) {
+        dir.create();
+      }
+
+      imageName += ".jpg";
+      const fileDir = new File(dir, imageName);
+
+      // Downloading the image
+      const file = await File.downloadFileAsync(imageUrl, fileDir, {
+        idempotent: true,
+      });
+
+      // Saving to the gallery
+      const permission = await MediaLibrary.requestPermissionsAsync();
+      if (!permission.granted) {
+        return Alert.alert("Permission not granted");
+      }
+      await MediaLibrary.saveToLibraryAsync(file.uri);
+    } catch (err) {
+      console.error(err);
+      Alert.alert("Failed to save image");
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -49,19 +79,12 @@ const ImageViewer = () => {
             isDoubleTapEnabled
             style={styles.imageCard}
           /> */}
-          <Zoomable
-            minScale={1}
-            maxScale={3}
-            doubleTapScale={2}
-            isDoubleTapEnabled
-          >
-            <AnimatedImage
-              entering={FadeIn.duration(500)}
-              source={{ uri: imageUrl }}
-              style={styles.imageCard}
-              onLoad={() => handleOnLoaded()}
-            />
-          </Zoomable>
+
+          <CustomZoomableImage
+            imageUrl={imageUrl}
+            handleOnLoaded={handleOnLoaded}
+          />
+
           {!isLoaded && (
             <ActivityIndicator
               size="large"
@@ -82,6 +105,7 @@ const ImageViewer = () => {
             animationDelay={2}
             icon={Download}
             buttonFn={SaveImage}
+            isDownloading={isDownloading}
           />
           <GlassyButton animationDelay={3} icon={Forward} />
         </View>
