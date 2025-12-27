@@ -15,7 +15,7 @@ const GlassyButton = (props) => {
       onPress={() => props.buttonFn()}
     >
       <BlurView tint="light" intensity={10} style={StyleSheet.absoluteFill} />
-      {props.isDownloading ? (
+      {props.isLoading ? (
         <ActivityIndicator size="small" color={Colors.input} />
       ) : (
         <props.icon color={Colors.input} size={20} strokeWidth={3} />

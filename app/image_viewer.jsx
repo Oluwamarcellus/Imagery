@@ -1,28 +1,82 @@
+import { CustomToastError, CustomToastSuccess } from "@components/CustomToast";
 import CustomZoomableImage from "@components/CustomZoomableImage";
 import GlassyButton from "@components/GlassyButton";
 import Colors from "@constants/Colors";
 import { BlurView } from "expo-blur";
 import { Directory, File, Paths } from "expo-file-system";
-import { Image } from "expo-image";
 import * as MediaLibrary from "expo-media-library";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import * as Sharing from "expo-sharing";
 import { Download, Forward, X } from "lucide-react-native";
 import { useState } from "react";
 import { ActivityIndicator, Alert, StyleSheet, View } from "react-native";
-import Animated from "react-native-reanimated";
 import { heightPercentageToDP } from "react-native-responsive-screen";
+import Toast from "react-native-toast-message";
 
 const ImageViewer = () => {
   const router = useRouter();
   const imageUrl = useLocalSearchParams().imageUrl;
   const [isLoaded, setIsLoaded] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
-
-  const AnimatedImage = Animated.createAnimatedComponent(Image);
+  const [isSharing, setIsSharing] = useState(false);
 
   const handleOnLoaded = () => {
     if (isLoaded) return;
     setIsLoaded(true);
+  };
+
+  const toastConfig = {
+    success_custom: (props) => <CustomToastSuccess {...props} />,
+    error_custom: (props) => <CustomToastError {...props} />,
+  };
+
+  const commonToastProps = {
+    position: "bottom",
+    autoHide: true,
+    visibilityTime: 2000,
+    bottomOffset: heightPercentageToDP("8%"),
+    onPress: () => Toast.hide(),
+    swipeable: true,
+  };
+
+  const shareImage = async () => {
+    setIsSharing(true);
+    let imageName = Date.now().toString() + ".jpg";
+    if (!(await Sharing.isAvailableAsync())) {
+      Toast.show({
+        type: "error_custom",
+        text1: "Sharing is not available",
+        ...commonToastProps,
+      });
+      return;
+    }
+    try {
+      // Creating a directory
+      const dir = new Directory(Paths.cache, "my-photos");
+      if (!dir.exists) {
+        dir.create();
+      }
+      const fileDir = new File(dir, imageName);
+
+      // Downloading the image
+      const file = await File.downloadFileAsync(imageUrl, fileDir, {
+        idempotent: true,
+      });
+
+      // Sharing the image
+      await Sharing.shareAsync(file.uri);
+      // Deleting the file from filesystem
+      fileDir.delete();
+    } catch (err) {
+      console.error(err);
+      Toast.show({
+        type: "error_custom",
+        text1: "Error sharing file",
+        ...commonToastProps,
+      });
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   const SaveImage = async () => {
@@ -34,8 +88,6 @@ const ImageViewer = () => {
       if (!dir.exists) {
         dir.create();
       }
-
-      imageName += ".jpg";
       const fileDir = new File(dir, imageName);
 
       // Downloading the image
@@ -49,9 +101,22 @@ const ImageViewer = () => {
         return Alert.alert("Permission not granted");
       }
       await MediaLibrary.saveToLibraryAsync(file.uri);
+
+      // Toast a message on download
+      Toast.show({
+        type: "success_custom",
+        text1: "Image saved",
+        ...commonToastProps,
+      });
+      // Deleting the file from filesystem
+      fileDir.delete();
     } catch (err) {
       console.error(err);
-      Alert.alert("Failed to save image");
+      Toast.show({
+        type: "error_custom",
+        text1: "Failed to save image",
+        ...commonToastProps,
+      });
     } finally {
       setIsDownloading(false);
     }
@@ -70,16 +135,6 @@ const ImageViewer = () => {
         }}
       >
         <View style={[styles.imageWrapper]}>
-          {/* <ImageZoom
-            source={{ uri: imageUrl }}
-            resizeMode="cover"
-            minScale={1}
-            maxScale={3}
-            doubleTapScale={2}
-            isDoubleTapEnabled
-            style={styles.imageCard}
-          /> */}
-
           <CustomZoomableImage
             imageUrl={imageUrl}
             handleOnLoaded={handleOnLoaded}
@@ -105,12 +160,17 @@ const ImageViewer = () => {
             animationDelay={2}
             icon={Download}
             buttonFn={SaveImage}
-            isDownloading={isDownloading}
+            isLoading={isDownloading}
           />
-          <GlassyButton animationDelay={3} icon={Forward} />
+          <GlassyButton
+            animationDelay={3}
+            icon={Forward}
+            buttonFn={shareImage}
+            isLoading={isSharing}
+          />
         </View>
       </View>
-      {/* <Button title="Back" onPress={() => router.back()} /> */}
+      <Toast config={toastConfig} />
     </BlurView>
   );
 };
