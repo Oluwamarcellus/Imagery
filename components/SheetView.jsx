@@ -2,9 +2,10 @@ import FilterOption from "@components/FilterOption";
 import Colors from "@constants/Colors";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import Animated, { SlideInDown } from "react-native-reanimated";
 import { widthPercentageToDP } from "react-native-responsive-screen";
 
-const BottomSheet = ({ setQueries, bottomSheetRef }) => {
+const BottomSheet = ({ setQueries, bottomSheetRef, setLoading }) => {
   const [filters, setFilters] = useState({});
 
   const filterItems = {
@@ -58,7 +59,7 @@ const BottomSheet = ({ setQueries, bottomSheetRef }) => {
 
       return prevFilters;
     };
-
+    setLoading(true);
     setQueries((prev) => fn(prev));
   };
 
@@ -76,6 +77,7 @@ const BottomSheet = ({ setQueries, bottomSheetRef }) => {
       return prevFilters;
     };
 
+    setLoading(true);
     bottomSheetRef.current?.close();
     setFilters({});
     setQueries((prev) => fn(prev));
@@ -85,7 +87,7 @@ const BottomSheet = ({ setQueries, bottomSheetRef }) => {
     <View style={{ flex: 1 }}>
       <Text style={styles.title}>Filters</Text>
       {/* FILTER OPTIONS */}
-      {Object.keys(filterItems).map((item) => (
+      {Object.keys(filterItems).map((item, i) => (
         <FilterOption
           key={item}
           name={item}
@@ -93,10 +95,14 @@ const BottomSheet = ({ setQueries, bottomSheetRef }) => {
           manageFilter={manageFilter}
           selected={filters[item] || ""}
           isColorType={item === "colors"}
+          index={i}
         />
       ))}
 
-      <View style={{ flexDirection: "row", gap: 10 }}>
+      <Animated.View
+        style={{ flexDirection: "row", gap: 10 }}
+        entering={SlideInDown.springify().damping(14).stiffness(70).mass(0.8)}
+      >
         <TouchableOpacity style={styles.button} onPress={() => handleReset()}>
           <Text style={[styles.buttonTitle]}>Reset</Text>
         </TouchableOpacity>
@@ -111,7 +117,7 @@ const BottomSheet = ({ setQueries, bottomSheetRef }) => {
             Apply
           </Text>
         </TouchableOpacity>
-      </View>
+      </Animated.View>
     </View>
   );
 };

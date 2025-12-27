@@ -3,7 +3,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { SlidersHorizontal } from "lucide-react-native";
 import { useState } from "react";
 import {
-  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,22 +11,21 @@ import {
   View,
 } from "react-native";
 import Animated, {
-  FadeIn,
   FadeInLeft,
   FadeInRight,
-  FadeOut,
   FadeOutLeft,
 } from "react-native-reanimated";
 import { widthPercentageToDP } from "react-native-responsive-screen";
 
 const HomeHeader = ({
   padding,
-  isSheetOpen,
   bottomSheetRef,
   setQueries,
   categories,
   activeCategory,
   filterCount,
+  setSheetRender,
+  setLoading,
 }) => {
   const [headerInputFocused, setHeaderInputFocused] = useState(false);
   const [headerInput, setHeaderInput] = useState("");
@@ -38,9 +36,8 @@ const HomeHeader = ({
     Animated.createAnimatedComponent(TouchableOpacity);
 
   const bottomSheetToggler = () => {
-    isSheetOpen.current
-      ? bottomSheetRef.current?.close()
-      : bottomSheetRef.current?.expand();
+    bottomSheetRef.current?.expand();
+    setSheetRender((prev) => !prev);
   };
 
   const handleOnInputExit = () => {
@@ -53,6 +50,7 @@ const HomeHeader = ({
   };
 
   const manageCategorySwitch = (category) => {
+    setLoading(true);
     if (category !== "all")
       setQueries((prev) => ({ ...prev, category: category }));
     else {
@@ -60,7 +58,6 @@ const HomeHeader = ({
         const { category: _, ...rest } = queries;
         return rest;
       };
-
       setQueries((prev) => fn(prev));
     }
   };

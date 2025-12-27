@@ -28,9 +28,9 @@ const index = () => {
   const [numPhotosPerPage, setNumPhotosPerPage] = useState(50);
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["60%"], []);
-  const isSheetOpen = useRef(false);
   const reloadTriggered = useRef(false);
   const page = useRef(1);
+  const [sheetRender, setSheetRender] = useState(false);
 
   const router = useRouter();
   const isDrawerOpen = useDrawerStatus() === "open";
@@ -78,7 +78,6 @@ const index = () => {
       setLoading(true);
       rawFetch ? (page.current = 1) : page.current++;
       const url = queryResolve();
-      console.log(photos);
       const response = await fetch(url);
       const data = await response.json();
       isFirstFetch && setIsFirstFetch(false);
@@ -102,9 +101,6 @@ const index = () => {
   };
 
   const handleSheetChanges = useCallback((index) => {
-    // console.log(index);
-    index >= 0 ? (isSheetOpen.current = true) : (isSheetOpen.current = false);
-
     // Force close the sheet
     index === 0 && bottomSheetRef.current?.close();
   }, []);
@@ -161,7 +157,7 @@ const index = () => {
         }}
       />
 
-      {/* HEADER */}
+      {/* Loader for Fetching */}
       {loading && !isFirstFetch && !isLoadingMore && (
         <AnimatedView
           style={{
@@ -207,12 +203,13 @@ const index = () => {
         ListHeaderComponent={
           <HomeHeader
             padding={padding}
-            isSheetOpen={isSheetOpen}
             bottomSheetRef={bottomSheetRef}
             setQueries={setQueries}
             categories={categories}
             activeCategory={queries["category"] || "all"}
             filterCount={getTotalFilters()}
+            setSheetRender={setSheetRender}
+            setLoading={setLoading}
           />
         }
         ListFooterComponent={
@@ -240,7 +237,12 @@ const index = () => {
         backdropComponent={(props) => <CustomBottomSheetBackdrop {...props} />}
       >
         <BottomSheetView style={{ padding: 20 }}>
-          <SheetView setQueries={setQueries} bottomSheetRef={bottomSheetRef} />
+          <SheetView
+            key={sheetRender}
+            setQueries={setQueries}
+            bottomSheetRef={bottomSheetRef}
+            setLoading={setLoading}
+          />
         </BottomSheetView>
       </BottomSheet>
     </View>

@@ -2,7 +2,7 @@ import Colors from "@constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import Animated, { FadeInRight } from "react-native-reanimated";
+import Animated, { FadeInDown } from "react-native-reanimated";
 import { widthPercentageToDP } from "react-native-responsive-screen";
 
 const FilterOption = ({
@@ -11,11 +11,17 @@ const FilterOption = ({
   selected,
   manageFilter,
   isColorType,
+  index,
 }) => {
   const AnimatedView = Animated.createAnimatedComponent(View);
   return (
     <AnimatedView
-      entering={FadeInRight.duration(200).delay(100)}
+      entering={FadeInDown.duration(200)
+        .delay(100 * index)
+        .springify()
+        .damping(30)
+        .stiffness(80)
+        .mass(0.8)}
       style={{ marginTop: 12 }}
     >
       <Text style={styles.categoryTitle}>
@@ -82,7 +88,7 @@ const FilterOption = ({
                       left: 0,
                       width: "100%",
                       height: "100%",
-                      resizeMode: "cover",
+                      contentFit: "cover",
                     }}
                   />
                 )}
