@@ -161,12 +161,14 @@ const ImageViewer = () => {
             icon={Download}
             buttonFn={SaveImage}
             isLoading={isDownloading}
+            disabled={!isLoaded}
           />
           <GlassyButton
             animationDelay={3}
             icon={Forward}
             buttonFn={shareImage}
             isLoading={isSharing}
+            disabled={!isLoaded}
           />
         </View>
       </View>

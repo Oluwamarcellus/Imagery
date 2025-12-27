@@ -10,7 +10,12 @@ import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import Drawer from "expo-router/drawer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import {
+  ActivityIndicator,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Animated, { FadeIn, FadeOut, ZoomOut } from "react-native-reanimated";
 import {
   heightPercentageToDP,
@@ -30,6 +35,7 @@ const index = () => {
   const snapPoints = useMemo(() => ["60%"], []);
   const reloadTriggered = useRef(false);
   const page = useRef(1);
+  const listRef = useRef(null);
   const [sheetRender, setSheetRender] = useState(false);
 
   const router = useRouter();
@@ -83,7 +89,7 @@ const index = () => {
       isFirstFetch && setIsFirstFetch(false);
       append
         ? setPhotos((prev) => [...prev, ...data.hits])
-        : setPhotos(data.hits);
+        : setPhotos([...data.hits]);
     } catch (error) {
       console.error(error);
     } finally {
@@ -145,13 +151,23 @@ const index = () => {
         options={{
           headerLeft: () => {
             return isDrawerOpen ? null : (
-              <Animated.Text
-                exiting={ZoomOut.duration(200)}
-                entering={FadeIn.duration(200)}
-                style={styles.headerLeft}
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() =>
+                  listRef.current?.scrollToOffset({
+                    offset: 0,
+                    animated: true,
+                  })
+                }
               >
-                Imagery
-              </Animated.Text>
+                <Animated.Text
+                  exiting={ZoomOut.duration(200)}
+                  entering={FadeIn.duration(200)}
+                  style={styles.headerLeft}
+                >
+                  Imagery
+                </Animated.Text>
+              </TouchableOpacity>
             );
           },
         }}
@@ -186,20 +202,29 @@ const index = () => {
       )}
 
       {/* PHOTOS SECTION */}
-
       <FlashList
         data={photos}
         numColumns={numOfColumns}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         masonry={true}
         onScroll={handlePagination}
         scrollEventThrottle={16}
         keyboardDismissMode="on-drag"
+        ref={listRef}
         contentContainerStyle={{
           paddingHorizontal: padding / 2,
           paddingBottom: 30,
         }}
         ListEmptyComponent={<ListEmpty isFirstFetch={isFirstFetch} />}
+        ListFooterComponent={
+          isLoadingMore &&
+          !isFirstFetch && (
+            <ActivityIndicator
+              size="large"
+              style={{ marginTop: 10, color: Colors.dark }}
+            />
+          )
+        }
         ListHeaderComponent={
           <HomeHeader
             padding={padding}
@@ -211,15 +236,6 @@ const index = () => {
             setSheetRender={setSheetRender}
             setLoading={setLoading}
           />
-        }
-        ListFooterComponent={
-          isLoadingMore &&
-          !isFirstFetch && (
-            <ActivityIndicator
-              size="large"
-              style={{ marginTop: 10, color: Colors.dark }}
-            />
-          )
         }
         renderItem={({ item }) => (
           <ImageCard photo={item} padding={padding} router={router} />

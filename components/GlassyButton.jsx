@@ -13,12 +13,18 @@ const GlassyButton = (props) => {
         .easing(Easing.inOut(Easing.quad))}
       style={styles.container}
       onPress={() => props.buttonFn()}
+      disabled={props.disabled ?? false}
     >
       <BlurView tint="light" intensity={10} style={StyleSheet.absoluteFill} />
       {props.isLoading ? (
         <ActivityIndicator size="small" color={Colors.input} />
       ) : (
-        <props.icon color={Colors.input} size={20} strokeWidth={3} />
+        <props.icon
+          color={Colors.input}
+          size={20}
+          strokeWidth={3}
+          style={{ opacity: props.disabled ? 0.5 : 1 }}
+        />
       )}
     </AnimatedTouchableOpacity>
   );
