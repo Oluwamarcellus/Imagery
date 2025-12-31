@@ -3,11 +3,8 @@ import Colors from "@constants/Colors";
 import { Ionicons } from "@expo/vector-icons";
 
 import { Drawer } from "expo-router/drawer";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import {
-  heightPercentageToDP,
-  widthPercentageToDP,
-} from "react-native-responsive-screen";
+import { Text, View } from "react-native";
+import { widthPercentageToDP } from "react-native-responsive-screen";
 
 const DrawerLayout = () => {
   return (
@@ -46,30 +43,7 @@ const DrawerLayout = () => {
         overlayColor: "rgba(0, 0, 0, 0.75)",
         drawerActiveBackgroundColor: Colors.dark,
         drawerActiveTintColor: Colors.background,
-        headerStyle: {
-          height: heightPercentageToDP("12%"),
-        },
-        headerTransparent: true,
-        headerShadowVisible: false,
-        headerBackground: () => (
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: "transparent",
-            }}
-          />
-        ),
-        headerTitle: "",
-        headerRight: () => (
-          <TouchableOpacity onPress={() => navigation.toggleDrawer()}>
-            <Ionicons
-              name="menu"
-              size={30}
-              color={Colors.dark}
-              style={styles.headerRight}
-            />
-          </TouchableOpacity>
-        ),
+        headerShown: false,
       })}
       drawerContent={(props) => {
         return <CustomDrawerContent {...props} />;
@@ -82,11 +56,3 @@ const DrawerLayout = () => {
 };
 
 export default DrawerLayout;
-
-const styles = StyleSheet.create({
-  headerRight: {
-    fontSize: widthPercentageToDP("8%"),
-    color: Colors.dark,
-    marginRight: 5,
-  },
-});

@@ -1,26 +1,18 @@
 import CustomBottomSheetBackdrop from "@components/CustomBottomSheetBackdrop";
+import HeaderPanel from "@components/HeaderPanel";
 import HomeHeader from "@components/HomeHeader";
 import ImageCard from "@components/ImageCard";
 import ListEmpty from "@components/ListEmpty";
 import SheetView from "@components/SheetView";
+import Spinner from "@components/Spinner";
 import Colors from "@constants/Colors";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
-import { useDrawerStatus } from "@react-navigation/drawer";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
-import Drawer from "expo-router/drawer";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  ActivityIndicator,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import Animated, { FadeIn, FadeOut, ZoomOut } from "react-native-reanimated";
-import {
-  heightPercentageToDP,
-  widthPercentageToDP,
-} from "react-native-responsive-screen";
+import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
+import { widthPercentageToDP } from "react-native-responsive-screen";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const index = () => {
   // Hooks and States
@@ -30,7 +22,7 @@ const index = () => {
   const [loading, setLoading] = useState(false);
   const [isFirstFetch, setIsFirstFetch] = useState(true);
   const [numOfColumns, setNumOfColumns] = useState(3);
-  const [numPhotosPerPage, setNumPhotosPerPage] = useState(50);
+  const [numPhotosPerPage, setNumPhotosPerPage] = useState(20);
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["60%"], []);
   const reloadTriggered = useRef(false);
@@ -39,7 +31,7 @@ const index = () => {
   const [sheetRender, setSheetRender] = useState(false);
 
   const router = useRouter();
-  const isDrawerOpen = useDrawerStatus() === "open";
+  const { top } = useSafeAreaInsets();
 
   // Constants
   const padding = 10;
@@ -142,71 +134,13 @@ const index = () => {
     }
   };
 
-  const AnimatedView = Animated.createAnimatedComponent(View);
-
   return (
-    <View style={styles.container}>
-      {/** Programatically set headerLeft  */}
-      <Drawer.Screen
-        options={{
-          headerLeft: () => {
-            return isDrawerOpen ? null : (
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={() =>
-                  listRef.current?.scrollToOffset({
-                    offset: 0,
-                    animated: true,
-                  })
-                }
-              >
-                <Animated.Text
-                  exiting={ZoomOut.duration(200)}
-                  entering={FadeIn.duration(200)}
-                  style={styles.headerLeft}
-                >
-                  Imagery
-                </Animated.Text>
-              </TouchableOpacity>
-            );
-          },
-        }}
-      />
-
-      {/* Loader for Fetching */}
-      {loading && !isFirstFetch && !isLoadingMore && (
-        <AnimatedView
-          style={{
-            position: "absolute",
-            right: 0,
-            left: 0,
-            zIndex: 10,
-            top: heightPercentageToDP("10%"),
-            justifyContent: "center",
-            flexDirection: "row",
-          }}
-          entering={FadeIn.duration(300)}
-          exiting={FadeOut.duration(1000)}
-        >
-          <ActivityIndicator
-            size="small"
-            style={{
-              borderRadius: 100,
-              backgroundColor: Colors.tint,
-              alignSelf: "center",
-              padding: 6,
-            }}
-            color={"fff"}
-          />
-        </AnimatedView>
-      )}
+    <View style={[styles.container, { paddingTop: top }]}>
+      {/* Screen Header */}
+      <HeaderPanel listRef={listRef} padding={padding} />
 
       {/* PHOTOS SECTION */}
-      <FlashList
-        data={photos}
-        numColumns={numOfColumns}
-        keyExtractor={(item) => item.id.toString()}
-        masonry={true}
+      <ScrollView
         onScroll={handlePagination}
         scrollEventThrottle={16}
         keyboardDismissMode="on-drag"
@@ -215,32 +149,49 @@ const index = () => {
           paddingHorizontal: padding / 2,
           paddingBottom: 30,
         }}
-        ListEmptyComponent={<ListEmpty isFirstFetch={isFirstFetch} />}
-        ListFooterComponent={
-          isLoadingMore &&
-          !isFirstFetch && (
-            <ActivityIndicator
-              size="large"
-              style={{ marginTop: 10, color: Colors.dark }}
-            />
-          )
-        }
-        ListHeaderComponent={
-          <HomeHeader
-            padding={padding}
-            bottomSheetRef={bottomSheetRef}
-            setQueries={setQueries}
-            categories={categories}
-            activeCategory={queries["category"] || "all"}
-            filterCount={getTotalFilters()}
-            setSheetRender={setSheetRender}
-            setLoading={setLoading}
+      >
+        <HomeHeader
+          padding={padding}
+          bottomSheetRef={bottomSheetRef}
+          setQueries={setQueries}
+          categories={categories}
+          activeCategory={queries["category"] || "all"}
+          filterCount={getTotalFilters()}
+          setSheetRender={setSheetRender}
+          setLoading={setLoading}
+        />
+
+        {/* Loader if fetching or photos */}
+        {loading && !isFirstFetch && !isLoadingMore ? (
+          <Spinner />
+        ) : (
+          <FlashList
+            data={photos}
+            numColumns={numOfColumns}
+            keyExtractor={(item) => item.id.toString()}
+            scrollEnabled={false}
+            masonry={true}
+            ListEmptyComponent={<ListEmpty isFirstFetch={isFirstFetch} />}
+            ListFooterComponent={
+              isLoadingMore &&
+              !isFirstFetch && (
+                <ActivityIndicator
+                  size="large"
+                  style={{ marginTop: 10, color: Colors.dark }}
+                />
+              )
+            }
+            renderItem={({ item }) => (
+              <ImageCard
+                photo={item}
+                padding={padding}
+                router={router}
+                isFirstFetch={isFirstFetch}
+              />
+            )}
           />
-        }
-        renderItem={({ item }) => (
-          <ImageCard photo={item} padding={padding} router={router} />
         )}
-      />
+      </ScrollView>
 
       {/* FILTER BOTTOM SHEET MODAL*/}
       <BottomSheet
@@ -271,7 +222,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
-    paddingTop: heightPercentageToDP("12%"),
+    // paddingTop: heightPercentageToDP("12%"),
   },
   headerLeft: {
     fontSize: widthPercentageToDP("9%"),

@@ -3,7 +3,7 @@ import { Image } from "expo-image";
 import { TouchableOpacity, View } from "react-native";
 import { heightPercentageToDP } from "react-native-responsive-screen";
 
-const ImageCard = ({ photo, padding, router }) => {
+const ImageCard = ({ photo, padding, router, isFirstFetch }) => {
   const BLURHASH_LOADING = "LEHV6nWB2yk8pyo0adR*.7kCMdnj";
 
   const isPortrait = (photo) => {
@@ -37,7 +37,7 @@ const ImageCard = ({ photo, padding, router }) => {
         <Image
           source={{ uri: photo.webformatURL }}
           transition={300}
-          placeholder={{ blurhash: BLURHASH_LOADING }}
+          placeholder={{ blurhash: isFirstFetch ? BLURHASH_LOADING : null }}
           style={{
             width: "100%",
             height: "100%",
