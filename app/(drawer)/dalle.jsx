@@ -16,8 +16,8 @@ import { ScrollView } from "react-native-gesture-handler";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Dalle = () => {
-  const [inputHeight, setInputHeight] = useState(null);
-  const [inputHeightDefault, setInputHeightDefault] = useState(null);
+  const [prompt, setPrompt] = useState("");
+  const [inputHeight, setInputHeight] = useState(0);
   const [conversationsData, setConversationsData] = useState({
     entryPrompt: "",
     conversations: [
@@ -80,20 +80,6 @@ const Dalle = () => {
     }
   };
 
-  const handleLayout = (e) => {
-    if (inputHeightDefault) return;
-    setInputHeight(e.nativeEvent.layout.height);
-    setInputHeightDefault(e.nativeEvent.layout.height);
-  };
-
-  const handleInputChange = (texts) => {
-    const numLines = texts.split("\n").length - 1;
-    const lineHeight = numLines * 20;
-    const newHeight = lineHeight + inputHeightDefault;
-
-    if (inputHeight !== newHeight) setInputHeight(newHeight);
-  };
-
   return (
     <View style={[styles.container, { paddingTop: top }]}>
       <HeaderPanel listRef={listRef} padding={padding / 2} />
@@ -141,11 +127,13 @@ const Dalle = () => {
           <TextInput
             placeholder="Enter your prompt"
             placeholderTextColor={"grey"}
-            style={[styles.input, { height: inputHeight }]}
+            style={[styles.input, inputHeight >= 150 && { height: 150 }]}
             multiline
-            scrollEnabled={false}
-            onLayout={handleLayout}
-            onChangeText={handleInputChange}
+            onChangeText={setPrompt}
+            onContentSizeChange={(e) => {
+              setInputHeight(e.nativeEvent.contentSize.height);
+            }}
+            value={prompt}
           />
         </View>
         <View
@@ -154,13 +142,16 @@ const Dalle = () => {
             justifyContent: "space-between",
             alignItems: "center",
             paddingHorizontal: 10,
+            paddingBottom: 5,
           }}
         >
-          <TouchableOpacity style={styles.addBtn}>
+          <TouchableOpacity style={styles.btn}>
             <Plus size={25} />
           </TouchableOpacity>
 
-          <Send style={styles.sendBtn} />
+          <TouchableOpacity style={styles.btn}>
+            <Send />
+          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
       <View style={{ paddingBottom: bottom, backgroundColor: "#6e6e6e35" }} />
@@ -222,11 +213,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },
-  addBtn: {
-    // backgroundColor: "#6e6e6e35",
-    // borderRadius: 50,
-    // padding: 5,
-  },
+  btn: {},
   input: {
     width: "100%",
     paddingVertical: 15,
@@ -234,5 +221,4 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlignVertical: "top",
   },
-  sendBtn: {},
 });
