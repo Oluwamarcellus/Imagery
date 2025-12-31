@@ -1,10 +1,6 @@
-import OpenAI from "openai";
-
-const openAi = new OpenAI({ apiKey: process.env.OPEN_AI_KEY });
-
 export const GET = async (request) => {
   return Response.json({
-    message: "Success",
+    status: "Success",
   });
 };
 

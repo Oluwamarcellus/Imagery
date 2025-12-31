@@ -1,9 +1,12 @@
+import CustomImageViewer from "@components/CustomImageViewer";
 import HeaderPanel from "@components/HeaderPanel";
 import Colors from "@constants/Colors";
 import { Image } from "expo-image";
 import { Plus, Send } from "lucide-react-native";
 import { useRef, useState } from "react";
 import {
+  ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -13,70 +16,80 @@ import {
   View,
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
+import { heightPercentageToDP } from "react-native-responsive-screen";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Dalle = () => {
   const [prompt, setPrompt] = useState("");
   const [inputHeight, setInputHeight] = useState(0);
+  const [processingImage, setProcessingImage] = useState(false);
   const [conversationsData, setConversationsData] = useState({
     entryPrompt: "",
-    conversations: [
-      {
-        role: "user",
-        prompt: "Show me a cyberpunk street city at night with neon lights",
-      },
-      {
-        role: "image-gpt",
-        imageUrl: require("@assets/images/prayer.webp"),
-      },
-
-      // {
-      //   role: "user",
-      //   prompt: "Now generate a beautiful natural waterfall scene",
-      // },
-      // {
-      //   role: "image-gpt",
-      //   imageUrl:
-      //     "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg",
-      // },
-      // {
-      //   role: "user",
-      //   prompt: "Show a city skyline with mountains in the background",
-      // },
-      // {
-      //   role: "image-gpt",
-      //   imageUrl:
-      //     "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg",
-      // },
-      // {
-      //   role: "user",
-      //   prompt: "Give me a neon city or cyberpunk skyline image",
-      // },
-      // {
-      //   role: "image-gpt",
-      //   imageUrl:
-      //     "https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg",
-      // },
-    ],
+    conversations: [],
   });
 
   const listRef = useRef(null);
   const { top, bottom } = useSafeAreaInsets();
-  // Constants
   const padding = 10;
 
+  const handleInputSubmit = async () => {
+    if (!prompt.trim()) return;
+
+    setConversationsData((prev) => ({
+      ...prev,
+      conversations: [
+        ...prev.conversations,
+        {
+          role: "user",
+          prompt,
+        },
+        {
+          role: "image-gpt",
+          loading: true,
+        },
+      ],
+    }));
+    setPrompt("");
+    listRef.current?.scrollTo({
+      y: heightPercentageToDP("100%"),
+      animated: true,
+    });
+    Keyboard.dismiss();
+
+    try {
+      await generateImage();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   const generateImage = async () => {
+    setProcessingImage(true);
     try {
       const res = await fetch("http://172.20.10.3:8081/api/create_image", {
         method: "POST",
         body: JSON.stringify({
-          prompts: "Generate an Image of a Dog sitting next to a Cat",
+          prompts: prompt,
         }),
       });
       const { data } = await res.json();
-      console.log(data);
+
+      if (data.success) {
+        setConversationsData((prev) => ({
+          ...prev,
+          conversations: [
+            ...prev.conversations.slice(0, -1),
+            {
+              role: "image-gpt",
+              imageUrl: data.url,
+            },
+          ],
+        }));
+      }
     } catch (err) {
-      console.error(err);
+      throw new Error(err);
+    } finally {
+      setProcessingImage(false);
     }
   };
 
@@ -90,6 +103,7 @@ const Dalle = () => {
           flexGrow: 1,
           paddingHorizontal: padding - 3,
           paddingVertical: 20,
+          paddingBottom: 100,
         }}
         showsVerticalScrollIndicator={false}
         keyboardDismissMode="on-drag"
@@ -101,7 +115,17 @@ const Dalle = () => {
                 source={require("@assets/images/imageGPT.webp")}
                 style={[styles.gptLogo]}
               />
-              <Image source={conversation.imageUrl} style={[styles.gptImage]} />
+              <View style={styles.gptImageWrapper}>
+                {conversation["loading"] ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={Colors.dark}
+                    style={{ alignSelf: "center" }}
+                  />
+                ) : (
+                  <CustomImageViewer url={conversation.imageUrl} />
+                )}
+              </View>
             </View>
           ) : (
             <View key={index} style={[styles.userChatBox]}>
@@ -134,6 +158,7 @@ const Dalle = () => {
               setInputHeight(e.nativeEvent.contentSize.height);
             }}
             value={prompt}
+            onSubmitEditing={handleInputSubmit}
           />
         </View>
         <View
@@ -145,16 +170,46 @@ const Dalle = () => {
             paddingBottom: 5,
           }}
         >
-          <TouchableOpacity style={styles.btn}>
+          <TouchableOpacity style={[styles.btn]}>
             <Plus size={25} />
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.btn}>
+          <TouchableOpacity
+            style={[styles.btn, { opacity: processingImage ? 0.3 : 1 }]}
+            disabled={processingImage}
+            onPress={handleInputSubmit}
+          >
             <Send />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
       <View style={{ paddingBottom: bottom, backgroundColor: "#6e6e6e35" }} />
+      {/* Empty Screen */}
+      {conversationsData.conversations.length === 0 && (
+        <View style={styles.welcomeTextWrapper}>
+          <Text
+            style={{
+              fontSize: 40,
+              fontWeight: "500",
+              color: "rgba(0,0,0,0.8)",
+            }}
+          >
+            Welcome,
+          </Text>
+          <Text
+            style={{
+              color: "rgba(0,0,0,0.5)",
+              textAlign: "center",
+              fontSize: 16,
+              width: "60%",
+              marginTop: 5,
+              fontStyle: "italic",
+            }}
+          >
+            Generate stunning images from simple text prompts
+          </Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -181,11 +236,14 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     backgroundColor: Colors.dark,
   },
-  gptImage: {
+  gptImageWrapper: {
     width: 280,
     height: 320,
-    contentFit: "cover",
     borderRadius: 15,
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: StyleSheet.hairlineWidth,
   },
   userChatBox: {
     flexDirection: "row",
@@ -220,5 +278,14 @@ const styles = StyleSheet.create({
     color: Colors.dark,
     fontSize: 18,
     textAlignVertical: "top",
+  },
+  welcomeTextWrapper: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: heightPercentageToDP("20%"),
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
