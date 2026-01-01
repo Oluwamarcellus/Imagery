@@ -28,7 +28,6 @@ export const POST = async (request) => {
       data,
     });
   } catch (err) {
-    console.error(err);
     return new Error(err);
   }
 };

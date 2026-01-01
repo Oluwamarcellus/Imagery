@@ -1,9 +1,10 @@
 import CustomImageViewer from "@components/CustomImageViewer";
 import HeaderPanel from "@components/HeaderPanel";
 import Colors from "@constants/Colors";
+import useAsyncStorage from "@hooks/useAsyncStorage";
 import { Image } from "expo-image";
 import { Plus, Send } from "lucide-react-native";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
@@ -23,20 +24,41 @@ const Dalle = () => {
   const [prompt, setPrompt] = useState("");
   const [inputHeight, setInputHeight] = useState(0);
   const [processingImage, setProcessingImage] = useState(false);
+  const [saveTrigger, setSaveTrigger] = useState(0);
   const [conversationsData, setConversationsData] = useState({
-    entryPrompt: "",
+    id: null,
     conversations: [],
+    createdAt: null,
+    title: null,
   });
+  const { set, get, remove } = useAsyncStorage();
+
+  // async function test() {
+  //   const data = await get("conversations");
+  //   console.log(data);
+  // }
+
+  // useEffect(() => {
+  //   test();
+  // });
 
   const listRef = useRef(null);
   const { top, bottom } = useSafeAreaInsets();
   const padding = 10;
 
+  useEffect(() => {
+    if (saveTrigger > 0) {
+      saveHistory();
+    }
+  }, [saveTrigger]);
+
   const handleInputSubmit = async () => {
     if (!prompt.trim()) return;
 
     setConversationsData((prev) => ({
-      ...prev,
+      id: prev.id ? prev.id : Date.now().toString(),
+      createdAt: prev.createdAt ? prev.createdAt : Date.now().toString(),
+      title: prev.title ? prev.title : prompt,
       conversations: [
         ...prev.conversations,
         {
@@ -86,10 +108,43 @@ const Dalle = () => {
           ],
         }));
       }
+
+      setSaveTrigger((prev) => prev + 1);
     } catch (err) {
       throw new Error(err);
     } finally {
       setProcessingImage(false);
+    }
+  };
+
+  const saveHistory = async () => {
+    const conversations = await get("conversations");
+    console.log("conversations", conversations);
+    console.log("conversationData", conversationsData);
+
+    if (!conversations) {
+      await set("conversations", [conversationsData]);
+      return;
+    }
+
+    let alreadyExists = false;
+
+    const filteredConversations = conversations.map((conversation) => {
+      if (conversation.id === conversationsData.id) {
+        alreadyExists = true;
+        return {
+          ...conversation,
+          conversations: [...conversationsData.conversations],
+        };
+      } else {
+        return conversation;
+      }
+    });
+
+    if (alreadyExists) {
+      await set("conversations", filteredConversations);
+    } else {
+      await set("conversations", [...conversations, { ...conversationsData }]);
     }
   };
 

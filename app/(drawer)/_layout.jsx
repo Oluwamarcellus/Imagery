@@ -1,55 +1,23 @@
 import CustomDrawerContent from "@components/CustomDrawerContent";
-import Colors from "@constants/Colors";
-import { Ionicons } from "@expo/vector-icons";
 
 import { Drawer } from "expo-router/drawer";
-import { Text, View } from "react-native";
-import { widthPercentageToDP } from "react-native-responsive-screen";
 
 const DrawerLayout = () => {
   return (
     <Drawer
       screenOptions={({ navigation, route }) => ({
         drawerPosition: "left",
-        drawerItemStyle: {
-          borderRadius: 10,
-        },
         drawerStyle: {
           width: "65%",
-          borderRadius: 10,
         },
-        drawerLabel: ({ focused }) => (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-            <Ionicons
-              name={route.name === "index" ? "home" : "images"}
-              size={widthPercentageToDP("4%")}
-              color={focused ? Colors.background : Colors.dark}
-            />
-            <Text
-              style={{
-                color: focused ? Colors.background : Colors.dark,
-                fontSize: widthPercentageToDP("4%"),
-                fontWeight: "500",
-              }}
-            >
-              {route.name === "index"
-                ? "Explore"
-                : route.name === "dalle"
-                ? "Dall-E"
-                : ""}
-            </Text>
-          </View>
-        ),
-        overlayColor: "rgba(0, 0, 0, 0.75)",
-        drawerActiveBackgroundColor: Colors.dark,
-        drawerActiveTintColor: Colors.background,
+        overlayColor: "rgba(0, 0, 0, 0.8)",
         headerShown: false,
       })}
       drawerContent={(props) => {
         return <CustomDrawerContent {...props} />;
       }}
     >
-      <Drawer.Screen name="index" options={{}} />
+      <Drawer.Screen name="index" />
       <Drawer.Screen name="dalle" />
     </Drawer>
   );

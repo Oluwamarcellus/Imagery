@@ -26,6 +26,7 @@ const HomeHeader = ({
   filterCount,
   setSheetRender,
   setLoading,
+  drawerInput,
 }) => {
   const [headerInputFocused, setHeaderInputFocused] = useState(false);
   const [headerInput, setHeaderInput] = useState("");
@@ -89,7 +90,7 @@ const HomeHeader = ({
           ]}
           onFocus={() => setHeaderInputFocused(true)}
           onBlur={() => handleOnInputExit()}
-          value={headerInput}
+          value={drawerInput ?? headerInput}
           onChangeText={headerInputHandler}
         />
         <AnimatedTouchableOpacity

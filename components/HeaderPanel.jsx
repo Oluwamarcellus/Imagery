@@ -50,13 +50,13 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   headerLeft: {
-    fontSize: widthPercentageToDP("9%"),
+    fontSize: widthPercentageToDP("8%"),
     fontWeight: "500",
     color: Colors.dark,
     marginLeft: 5,
   },
   headerRight: {
-    fontSize: widthPercentageToDP("8%"),
+    fontSize: widthPercentageToDP("7%"),
     color: Colors.dark,
     marginRight: 5,
   },
