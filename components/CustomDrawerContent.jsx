@@ -77,7 +77,18 @@ const CustomDrawerContent = (props) => {
           onPress: async () => {
             await removeItem(id);
             loadGPTHistory();
-            router.navigate("/(drawer)/dalle");
+            router.navigate({
+              pathname: "/(drawer)/dalle",
+              params: {
+                data: JSON.stringify({
+                  id: "deletion",
+                  title: null,
+                  title: null,
+                  conversations: [],
+                  createdAt: id,
+                }),
+              },
+            });
           },
         },
       ],

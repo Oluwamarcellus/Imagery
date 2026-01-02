@@ -8,7 +8,7 @@ import Spinner from "@components/Spinner";
 import Colors from "@constants/Colors";
 import BottomSheet, { BottomSheetView } from "@gorhom/bottom-sheet";
 import { FlashList } from "@shopify/flash-list";
-import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { widthPercentageToDP } from "react-native-responsive-screen";
@@ -23,7 +23,7 @@ const index = () => {
   const [isFirstFetch, setIsFirstFetch] = useState(true);
   const [numOfColumns, setNumOfColumns] = useState(3);
   const [numPhotosPerPage, setNumPhotosPerPage] = useState(40);
-  const [drawerSearchInput, setDrawerSearchInput] = useState("");
+  const [drawerSearchInput, setDrawerSearchInput] = useState(null);
   const bottomSheetRef = useRef(null);
   const snapPoints = useMemo(() => ["60%"], []);
   const reloadTriggered = useRef(false);
@@ -32,7 +32,6 @@ const index = () => {
   const [sheetRender, setSheetRender] = useState(false);
 
   const router = useRouter();
-  const navigation = useNavigation();
   const params = useLocalSearchParams();
   const { top } = useSafeAreaInsets();
 
@@ -96,7 +95,6 @@ const index = () => {
       console.error(error);
     } finally {
       setLoading(false);
-      setDrawerSearchInput("");
     }
   };
 
@@ -171,6 +169,7 @@ const index = () => {
           setSheetRender={setSheetRender}
           setLoading={setLoading}
           drawerInput={drawerSearchInput || null}
+          setDrawerSearchInput={setDrawerSearchInput}
         />
 
         {/* Loader if fetching or photos */}

@@ -20,18 +20,25 @@ const useAsyncStorage = () => {
       }
     },
 
-    async removeItem(key) {
+    async removeItem(id) {
       try {
         const conversations = await AsyncStorage.getItem(
           PREFIX + "conversations"
         );
         const newConvo = JSON.parse(conversations).filter(
-          (convo) => convo.id !== key.toString()
+          (convo) => convo.id !== id.toString()
         );
         await AsyncStorage.setItem(
           PREFIX + "conversations",
           JSON.stringify(newConvo)
         );
+      } catch (e) {
+        return new Error(e);
+      }
+    },
+    async remove(key) {
+      try {
+        await AsyncStorage.removeItem(PREFIX + key);
       } catch (e) {
         return new Error(e);
       }

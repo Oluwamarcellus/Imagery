@@ -4,7 +4,7 @@ import Colors from "@constants/Colors";
 import useAsyncStorage from "@hooks/useAsyncStorage";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
-import { Plus, Send } from "lucide-react-native";
+import { FilePlus, Plus, Send } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -18,13 +18,16 @@ import {
   View,
 } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
+import Animated, { FadeInLeft } from "react-native-reanimated";
 import { heightPercentageToDP } from "react-native-responsive-screen";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const Dalle = () => {
   const [prompt, setPrompt] = useState("");
   const [inputHeight, setInputHeight] = useState(0);
+  const [addBtnLayout, setAddBtnLayout] = useState({});
   const [processingImage, setProcessingImage] = useState(false);
+  const [toggleBtn, setToggleBtn] = useState(false);
   const [saveTrigger, setSaveTrigger] = useState(0);
   const [conversationsData, setConversationsData] = useState({
     id: null,
@@ -38,6 +41,7 @@ const Dalle = () => {
   // async function test() {
   //   const data = await get("conversations");
   //   console.log(data);
+  //   // console.log(conversationsData);
   // }
 
   // useEffect(() => {
@@ -47,6 +51,7 @@ const Dalle = () => {
   const listRef = useRef(null);
   const { top, bottom } = useSafeAreaInsets();
   const padding = 10;
+  let timer = null;
 
   useEffect(() => {
     // Auto saves conversation history
@@ -60,19 +65,48 @@ const Dalle = () => {
     if (Object.keys(params).length === 0) {
       return;
     }
-
     const data = JSON.parse(params.data);
-    if (data["id"] === "new") {
-      setConversationsData({
-        id: null,
-        conversations: [],
-        createdAt: null,
-        title: null,
-      });
+    // console.log(data);
+    if (data["id"] === "deletion") {
+      verifyDeletion();
     } else {
       setConversationsData(data);
     }
   }, [params.data]);
+
+  useEffect(() => {
+    // Auto hides the input menu options
+    if (toggleBtn) {
+      timer = setTimeout(() => {
+        setToggleBtn(false);
+      }, 2000);
+    }
+  }, [toggleBtn]);
+
+  const handleTooggle = () => {
+    setToggleBtn((prev) => {
+      if (prev) clearTimeout(timer);
+      return !prev;
+    });
+  };
+
+  const verifyDeletion = async () => {
+    if (conversationsData.id) {
+      const conversations = await get("conversations");
+      const isPresent = conversations.some(
+        (c) => c.id === conversationsData.id
+      );
+      if (!isPresent) {
+        // Hass been deleted
+        setConversationsData({
+          id: null,
+          title: null,
+          conversations: [],
+          createdAt: null,
+        });
+      }
+    }
+  };
 
   const handleInputSubmit = async () => {
     if (!prompt.trim()) return;
@@ -167,6 +201,11 @@ const Dalle = () => {
     }
   };
 
+  const handleAddBtnLayout = (e) => {
+    const { width, height } = e.nativeEvent.layout;
+    setAddBtnLayout({ width, height });
+  };
+
   return (
     <View style={[styles.container, { paddingTop: top }]}>
       <HeaderPanel listRef={listRef} padding={padding / 2} />
@@ -210,7 +249,6 @@ const Dalle = () => {
       </ScrollView>
 
       {/* Input Section */}
-
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={15}
@@ -222,6 +260,7 @@ const Dalle = () => {
             paddingHorizontal: 10,
           }}
         >
+          {/* Text Field */}
           <TextInput
             placeholder="Enter your prompt"
             placeholderTextColor={"grey"}
@@ -235,19 +274,55 @@ const Dalle = () => {
             onSubmitEditing={handleInputSubmit}
           />
         </View>
-        <View
-          style={{
-            flexDirection: "row",
-            justifyContent: "space-between",
-            alignItems: "center",
-            paddingHorizontal: 10,
-            paddingBottom: 5,
-          }}
-        >
-          <TouchableOpacity style={[styles.btn]} onPress={() => {}}>
-            <Plus size={25} />
-          </TouchableOpacity>
 
+        {/* Buttons */}
+        <View style={styles.btnContainer}>
+          <View style={[styles.btn, { position: "relative" }]}>
+            {/* Menu BTN */}
+            <TouchableOpacity
+              onLayout={(e) => handleAddBtnLayout(e)}
+              onPress={() => handleTooggle()}
+            >
+              <Plus size={25} />
+            </TouchableOpacity>
+            {/* Select Box */}
+            {toggleBtn && (
+              <Animated.View
+                entering={FadeInLeft.duration(300)}
+                style={[
+                  styles.optionModal,
+                  {
+                    bottom: addBtnLayout.height + 10,
+                    left: addBtnLayout.width,
+                    backgroundColor: Colors.background,
+                  },
+                ]}
+              >
+                <TouchableOpacity
+                  style={{
+                    flexDirection: "row",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    width: "100%",
+                  }}
+                  onPress={() => {
+                    setConversationsData({
+                      id: null,
+                      conversations: [],
+                      createdAt: null,
+                      title: null,
+                    });
+                    setToggleBtn(false);
+                  }}
+                >
+                  <Text style={{ fontSize: 16, color: "grey" }}>Start New</Text>
+                  <FilePlus size={16} color={"grey"} />
+                </TouchableOpacity>
+              </Animated.View>
+            )}
+          </View>
+
+          {/* Send BTN */}
           <TouchableOpacity
             style={[styles.btn, { opacity: processingImage ? 0.3 : 1 }]}
             disabled={processingImage}
@@ -362,5 +437,20 @@ const styles = StyleSheet.create({
     bottom: heightPercentageToDP("20%"),
     justifyContent: "center",
     alignItems: "center",
+  },
+  btnContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    paddingBottom: 5,
+  },
+  optionModal: {
+    borderWidth: StyleSheet.hairlineWidth,
+    position: "absolute",
+    borderRadius: 10,
+    borderColor: "grey",
+    padding: 15,
+    minWidth: 150,
   },
 });

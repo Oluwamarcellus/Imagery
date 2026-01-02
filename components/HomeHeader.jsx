@@ -27,6 +27,7 @@ const HomeHeader = ({
   setSheetRender,
   setLoading,
   drawerInput,
+  setDrawerSearchInput,
 }) => {
   const [headerInputFocused, setHeaderInputFocused] = useState(false);
   const [headerInput, setHeaderInput] = useState("");
@@ -46,6 +47,7 @@ const HomeHeader = ({
   };
 
   const headerInputHandler = (text) => {
+    setDrawerSearchInput(null);
     setHeaderInput(text);
     setQueries((prev) => ({ ...prev, q: text }));
   };
