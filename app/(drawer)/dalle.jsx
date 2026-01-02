@@ -3,6 +3,7 @@ import HeaderPanel from "@components/HeaderPanel";
 import Colors from "@constants/Colors";
 import useAsyncStorage from "@hooks/useAsyncStorage";
 import { Image } from "expo-image";
+import { useLocalSearchParams } from "expo-router";
 import { Plus, Send } from "lucide-react-native";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -32,6 +33,7 @@ const Dalle = () => {
     title: null,
   });
   const { set, get, remove } = useAsyncStorage();
+  const params = useLocalSearchParams();
 
   // async function test() {
   //   const data = await get("conversations");
@@ -47,10 +49,30 @@ const Dalle = () => {
   const padding = 10;
 
   useEffect(() => {
+    // Auto saves conversation history
     if (saveTrigger > 0) {
       saveHistory();
     }
   }, [saveTrigger]);
+
+  useEffect(() => {
+    // Manages the conversation data history
+    if (Object.keys(params).length === 0) {
+      return;
+    }
+
+    const data = JSON.parse(params.data);
+    if (data["id"] === "new") {
+      setConversationsData({
+        id: null,
+        conversations: [],
+        createdAt: null,
+        title: null,
+      });
+    } else {
+      setConversationsData(data);
+    }
+  }, [params.data]);
 
   const handleInputSubmit = async () => {
     if (!prompt.trim()) return;
@@ -119,9 +141,6 @@ const Dalle = () => {
 
   const saveHistory = async () => {
     const conversations = await get("conversations");
-    console.log("conversations", conversations);
-    console.log("conversationData", conversationsData);
-
     if (!conversations) {
       await set("conversations", [conversationsData]);
       return;
@@ -225,7 +244,7 @@ const Dalle = () => {
             paddingBottom: 5,
           }}
         >
-          <TouchableOpacity style={[styles.btn]}>
+          <TouchableOpacity style={[styles.btn]} onPress={() => {}}>
             <Plus size={25} />
           </TouchableOpacity>
 
@@ -239,7 +258,8 @@ const Dalle = () => {
         </View>
       </KeyboardAvoidingView>
       <View style={{ paddingBottom: bottom, backgroundColor: "#6e6e6e35" }} />
-      {/* Empty Screen */}
+
+      {/* Empty Screen Text */}
       {conversationsData.conversations.length === 0 && (
         <View style={styles.welcomeTextWrapper}>
           <Text

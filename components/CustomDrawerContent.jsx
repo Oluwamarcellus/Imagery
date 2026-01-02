@@ -1,9 +1,14 @@
 import Colors from "@constants/Colors";
-import { Ionicons } from "@expo/vector-icons";
-import { DrawerContentScrollView } from "@react-navigation/drawer";
-import { usePathname, useRouter } from "expo-router";
-import { useState } from "react";
+import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import useAsyncStorage from "@hooks/useAsyncStorage";
 import {
+  DrawerContentScrollView,
+  useDrawerStatus,
+} from "@react-navigation/drawer";
+import { usePathname, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  Alert,
   StyleSheet,
   Text,
   TextInput,
@@ -18,9 +23,13 @@ import {
 const CustomDrawerContent = (props) => {
   const [inputText, setInputText] = useState("");
   const [prevInput, setPrevInput] = useState("");
+  const [conversations, setConversations] = useState([]);
 
   const pathname = usePathname();
   const router = useRouter();
+  const isDrawerOpen = useDrawerStatus();
+  const { get, removeItem } = useAsyncStorage();
+
   const DRAWERS = [
     {
       name: "Explore",
@@ -46,6 +55,42 @@ const CustomDrawerContent = (props) => {
     setInputText("");
   };
 
+  const loadGPTHistory = async () => {
+    const data = await get("conversations");
+    if (!data) return;
+    setConversations(data);
+    // console.log(data);
+  };
+
+  const handleDelete = async (id) => {
+    Alert.alert(
+      "Delete Conversation",
+      "Are you sure you want to delete this conversation?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            await removeItem(id);
+            loadGPTHistory();
+            router.navigate("/(drawer)/dalle");
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  useEffect(() => {
+    if (isDrawerOpen === "closed") return;
+
+    loadGPTHistory();
+  }, [isDrawerOpen]);
+
   return (
     <DrawerContentScrollView
       {...props}
@@ -63,7 +108,7 @@ const CustomDrawerContent = (props) => {
         />
       </View>
 
-      {/* <DrawerItemList {...props} /> */}
+      {/* Navigation section */}
       {DRAWERS.map((drawer, index) => (
         <TouchableOpacity
           onPress={() => router.navigate("/(drawer)" + drawer.path)}
@@ -89,6 +134,56 @@ const CustomDrawerContent = (props) => {
           </Text>
         </TouchableOpacity>
       ))}
+
+      {/* Conversations Section */}
+      {conversations.length > 0 && (
+        <>
+          <View
+            style={{
+              height: 1,
+              marginTop: 20,
+              backgroundColor: Colors.lightGrey,
+            }}
+          />
+          <Text style={styles.subTitle}>Conversations</Text>
+        </>
+      )}
+
+      {conversations.length > 0 &&
+        conversations.map((conversation, index) => (
+          <View
+            key={index}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginTop: 15,
+              paddingRight: 20,
+            }}
+          >
+            <TouchableOpacity
+              onPress={() =>
+                router.navigate({
+                  pathname: "/(drawer)/dalle",
+                  params: { data: JSON.stringify(conversation) },
+                })
+              }
+              style={{ width: "100%" }}
+            >
+              <Text
+                numberOfLines={1}
+                ellipsizeMode="middle"
+                style={styles.listTitle}
+              >
+                {conversation.title}
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => handleDelete(conversation.id)}>
+              <MaterialIcons name="delete" color={Colors.dark} size={24} />
+            </TouchableOpacity>
+          </View>
+        ))}
     </DrawerContentScrollView>
   );
 };
@@ -127,5 +222,18 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: Colors.grey,
+  },
+  subTitle: {
+    fontSize: wp("5.5%"),
+    marginTop: 20,
+    fontWeight: "500",
+    color: Colors.dark,
+  },
+  listTitle: {
+    fontSize: wp("4%"),
+    fontWeight: "500",
+    color: "grey",
+    textDecorationLine: "underline",
+    width: "90%",
   },
 });
