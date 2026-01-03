@@ -1,50 +1,76 @@
-# Welcome to your Expo app 👋
+# Imagery
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A modern image search and generation mobile app built with **Expo** and **React Native**.
+Imagery started as a learning project, but I tried to build it like a real app — clean structure, smooth UI, and features that actually work together instead of feeling stitched on.
 
-## Get started
+---
 
-1. Install dependencies
+## What the App Does
 
-   ```bash
-   npm install
-   ```
+When you open the app, you land on an image grid that loads images in a masonry layout..
 
-2. Start the app
+You can search for images by text, pick a category, and apply filters like image type or color and they all work together.  
+For example... search for **cats**, set the type to **illustration**, choose a color and you’ll only get results that match everything.
 
-   ```bash
-   npx expo start
-   ```
+This is all powered by the Pixabay API.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Image Viewer
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+tapping an image card opens a full screen viewer where you can:
 
-## Get a fresh project
+- Zoom into the image
+- Download it to your device
+- Share it with other apps
 
-When you're ready, run:
+---
 
-```bash
-npm run reset-project
-```
+## Image GPT
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+The app also includes an **Image GPT** screen where you can generate images by typing prompts.
 
-## Learn more
+Generated images open in the same viewer, so you can zoom, download, or share them just like normal images.
 
-To learn more about developing your project with Expo, look at the following resources:
+Each prompt is saved locally as a thread and your history shows up in the side drawer, similar to how ChatGPT displays past conversations.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+---
 
-## Join the community
+## Navigation
 
-Join our community of developers creating universal apps.
+Imagery uses a simple drawer layout:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- **Explore** –> image search and filters
+- **Image GPT** –> prompt-based image generation
+- **History** –> saved image generation threads
+
+The drawer also includes a quick search input so you can search images from anywhere.
+
+---
+
+## Tech Stack
+
+- React Native
+- Expo
+- Expo Router
+- RN Reanimated for animations
+- Pixabay API
+- Image GPT API
+
+---
+
+## Screenshots & Demos
+
+`Still editing`
+
+---
+
+## Notes
+
+This project was mainly built to practice:
+
+- Search + filter logic
+- Image & animation heavy UI performance
+- App structure and navigation
+- Working with external APIs in a real app setup
+- Scalable project

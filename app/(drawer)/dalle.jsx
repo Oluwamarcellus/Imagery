@@ -36,14 +36,9 @@ const Dalle = () => {
     createdAt: null,
     title: null,
   });
-  const { set, get, remove } = useAsyncStorage();
+  const { set, get } = useAsyncStorage();
   const params = useLocalSearchParams();
   const isFocused = useIsFocused();
-
-  async function test() {
-    const data = await get("conversations");
-    console.log(data);
-  }
 
   const listRef = useRef(null);
   const { top, bottom } = useSafeAreaInsets();
