@@ -1,7 +1,7 @@
 # Imagery
 
 A modern image search and generation mobile app built with **Expo** and **React Native**.
-Imagery started as a learning project, but I tried to build it like a real app — clean structure, smooth UI, and features that actually work together instead of feeling stitched on.
+Imagery started as a learning project, but I tried to build it like a real app... clean structure, smooth UI, and features that actually work together instead of feeling stitched on.
 
 ---
 
