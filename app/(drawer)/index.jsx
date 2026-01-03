@@ -220,6 +220,7 @@ const index = () => {
             setQueries={setQueries}
             bottomSheetRef={bottomSheetRef}
             setLoading={setLoading}
+            queries={queries}
           />
         </BottomSheetView>
       </BottomSheet>

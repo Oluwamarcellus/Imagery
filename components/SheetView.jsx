@@ -1,11 +1,11 @@
 import FilterOption from "@components/FilterOption";
 import Colors from "@constants/Colors";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Animated, { SlideInDown } from "react-native-reanimated";
 import { widthPercentageToDP } from "react-native-responsive-screen";
 
-const BottomSheet = ({ setQueries, bottomSheetRef, setLoading }) => {
+const BottomSheet = ({ setQueries, bottomSheetRef, setLoading, queries }) => {
   const [filters, setFilters] = useState({});
 
   const filterItems = {
@@ -27,6 +27,13 @@ const BottomSheet = ({ setQueries, bottomSheetRef, setLoading }) => {
       "brown",
     ],
   };
+
+  useEffect(() => {
+    if (Object.keys(queries).length > 0) {
+      const { q, category, ...rest } = queries;
+      setFilters(rest);
+    }
+  }, []);
 
   const manageFilter = (filterEntry, option) => {
     const optionLowerCase = option.toLowerCase();

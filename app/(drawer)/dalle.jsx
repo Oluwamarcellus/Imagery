@@ -2,6 +2,7 @@ import CustomImageViewer from "@components/CustomImageViewer";
 import HeaderPanel from "@components/HeaderPanel";
 import Colors from "@constants/Colors";
 import useAsyncStorage from "@hooks/useAsyncStorage";
+import { useIsFocused } from "@react-navigation/native";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import { FilePlus, Plus, Send } from "lucide-react-native";
@@ -37,21 +38,21 @@ const Dalle = () => {
   });
   const { set, get, remove } = useAsyncStorage();
   const params = useLocalSearchParams();
+  const isFocused = useIsFocused();
 
-  // async function test() {
-  //   const data = await get("conversations");
-  //   console.log(data);
-  //   // console.log(conversationsData);
-  // }
-
-  // useEffect(() => {
-  //   test();
-  // });
+  async function test() {
+    const data = await get("conversations");
+    console.log(data);
+  }
 
   const listRef = useRef(null);
   const { top, bottom } = useSafeAreaInsets();
   const padding = 10;
   let timer = null;
+
+  useEffect(() => {
+    verifyDeletion();
+  }, [isFocused]);
 
   useEffect(() => {
     // Auto saves conversation history
@@ -66,7 +67,6 @@ const Dalle = () => {
       return;
     }
     const data = JSON.parse(params.data);
-    // console.log(data);
     if (data["id"] === "deletion") {
       verifyDeletion();
     } else {
@@ -93,6 +93,7 @@ const Dalle = () => {
   const verifyDeletion = async () => {
     if (conversationsData.id) {
       const conversations = await get("conversations");
+      if (!conversations) return;
       const isPresent = conversations.some(
         (c) => c.id === conversationsData.id
       );

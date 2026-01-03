@@ -62,6 +62,25 @@ const CustomDrawerContent = (props) => {
     // console.log(data);
   };
 
+  const deleteHistory = async (id) => {
+    await removeItem(id);
+    loadGPTHistory();
+
+    pathname === "/dalle" &&
+      router.navigate({
+        pathname: "/(drawer)/dalle",
+        params: {
+          data: JSON.stringify({
+            id: "deletion",
+            title: null,
+            title: null,
+            conversations: [],
+            createdAt: id,
+          }),
+        },
+      });
+  };
+
   const handleDelete = async (id) => {
     Alert.alert(
       "Delete Conversation",
@@ -74,22 +93,7 @@ const CustomDrawerContent = (props) => {
         {
           text: "Delete",
           style: "destructive",
-          onPress: async () => {
-            await removeItem(id);
-            loadGPTHistory();
-            router.navigate({
-              pathname: "/(drawer)/dalle",
-              params: {
-                data: JSON.stringify({
-                  id: "deletion",
-                  title: null,
-                  title: null,
-                  conversations: [],
-                  createdAt: id,
-                }),
-              },
-            });
-          },
+          onPress: () => deleteHistory(id),
         },
       ],
       { cancelable: true }

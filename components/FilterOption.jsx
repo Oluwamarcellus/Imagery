@@ -14,6 +14,7 @@ const FilterOption = ({
   index,
 }) => {
   const AnimatedView = Animated.createAnimatedComponent(View);
+
   return (
     <AnimatedView
       entering={FadeInDown.duration(200)
