@@ -62,7 +62,7 @@ The drawer also includes a quick search input so you can search images from anyw
 ## Screenshots & Demos
 
 <img
-  src="https://github.com/user-attachments/assets/6e7c6db3-8b0b-4a7a-8f08-56dd362ac001"
+  src="https://github.com/user-attachments/assets/553ba07a-0d44-4bef-a729-a7aa9e4327a0"
   width="23%"
 />
 
