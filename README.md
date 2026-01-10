@@ -68,7 +68,7 @@ The drawer also includes a quick search input so you can search images from anyw
 </p>
 
 <p align="center">
-  <img src="assets/inages/gifs/IMG_0353.GIF" width="23%" />
+  <img src="assets/images/gifs/IMG_0353.GIF" width="23%" />
   <img src="assets/images/gifs/IMG_0354.GIF" width="23%" />
   <img src="assets/images/gifs/IMG_0355.GIF" width="23%" />
   <img src="assets/images/gifs/IMG_0356.GIF" width="23%" />
