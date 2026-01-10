@@ -61,17 +61,17 @@ The drawer also includes a quick search input so you can search images from anyw
 
 ## gifs --> Demos
 <p align="center">
-  <img src="assets/gifs/IMG_0349.gif" width="23%" />
-  <img src="assets/gifs/IMG_0350.gif" width="23%" />
-  <img src="assets/gifs/IMG_0351.gif" width="23%" />
-  <img src="assets/gifs/IMG_0352.gif" width="23%" />
+  <img src="assets/images/gifs/IMG_0349.gif" width="23%" />
+  <img src="assets/images/gifs/IMG_0350.gif" width="23%" />
+  <img src="assets/images/gifs/IMG_0351.gif" width="23%" />
+  <img src="assets/images/gifs/IMG_0352.gif" width="23%" />
 </p>
 
 <p align="center">
-  <img src="assets/gifs/IMG_0353.gif" width="23%" />
-  <img src="assets/gifs/IMG_0354.gif" width="23%" />
-  <img src="assets/gifs/IMG_0355.gif" width="23%" />
-  <img src="assets/gifs/IMG_0356.gif" width="23%" />
+  <img src="assets/inages/gifs/IMG_0353.gif" width="23%" />
+  <img src="assets/images/gifs/IMG_0354.gif" width="23%" />
+  <img src="assets/images/gifs/IMG_0355.gif" width="23%" />
+  <img src="assets/images/gifs/IMG_0356.gif" width="23%" />
 </p>
 ---
 
