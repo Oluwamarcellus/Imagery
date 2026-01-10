@@ -59,13 +59,20 @@ The drawer also includes a quick search input so you can search images from anyw
 
 ---
 
-## Screenshots & Demos
+## gifs --> Demos
+<p align="center">
+  <img src="assets/gifs/IMG_0349.gif" width="23%" />
+  <img src="assets/gifs/IMG_0350.gif" width="23%" />
+  <img src="assets/gifs/IMG_0351.gif" width="23%" />
+  <img src="assets/gifs/IMG_0352.gif" width="23%" />
+</p>
 
-<img
-  src="https://github.com/user-attachments/assets/553ba07a-0d44-4bef-a729-a7aa9e4327a0"
-  width="23%"
-/>
-
+<p align="center">
+  <img src="assets/gifs/IMG_0353.gif" width="23%" />
+  <img src="assets/gifs/IMG_0354.gif" width="23%" />
+  <img src="assets/gifs/IMG_0355.gif" width="23%" />
+  <img src="assets/gifs/IMG_0356.gif" width="23%" />
+</p>
 ---
 
 ## Notes
